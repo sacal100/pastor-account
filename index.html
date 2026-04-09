@@ -1,37 +1,245 @@
-<!doctype html>
-<html dir="ltr" lang="ko" class="loading">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="color-scheme" content="light dark">
-  <base href="chrome://downloads">
-  <title>다운로드 기록</title>
-  <link rel="stylesheet" href="chrome://resources/css/md_colors.css">
-  <style>
-    html {
-      /* Remove 300ms delay for 'click' event, when using touch interface. */
-      touch-action: manipulation;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a3a5c">
+<title>목회자 가계부 - 통합관리</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #1a3a5c; --gold: #c9a84c; --income: #2d6a4f; --expense: #9b2335; --asset: #1d4e89;
+  --border: #dde4ed; --white: #ffffff; --bg: #eef2f7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; }
+body { background: var(--bg); color: #333; padding-bottom: 80px; }
 
-    @media (prefers-color-scheme: dark) {
-      html {
-        background: var(--md-background-color);
-      }
-    }
+/* Header & Tabs */
+.app-header { background: var(--navy); color: white; padding: 15px; position: sticky; top: 0; z-index: 100; text-align: center; }
+.tab-bar { display: flex; background: #0f2440; position: sticky; top: 50px; z-index: 100; }
+.tab-btn { flex: 1; color: #aaa; padding: 12px; border: none; background: none; font-size: 12px; cursor: pointer; }
+.tab-btn.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
 
-    html:not(.loading),
-    body {
-      height: 100%;
-    }
+/* Section Styles */
+.page { display: none; padding: 15px; }
+.page.active { display: block; }
+.section { background: var(--white); border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+.section-header { padding: 12px 15px; border-bottom: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; }
+.section-body { padding: 10px 15px; }
 
-    body {
-      display: flex;
-      margin: 0;
-    }
-  </style>
+/* Item Row */
+.item-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
+.item-label { font-size: 13px; flex: 1; }
+.item-input { width: 120px; text-align: right; border: 1px solid var(--border); border-radius: 6px; padding: 6px; font-weight: 700; }
+
+/* Custom Addition UI */
+.add-custom { display: flex; gap: 5px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.add-custom input { flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+.add-btn { background: var(--navy); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+
+/* Summary Cards */
+.summary-card { background: var(--white); padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+.sum-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+.sum-val { font-weight: 700; }
+
+/* Daily List */
+.daily-item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.daily-info { display: flex; flex-direction: column; }
+.daily-date { font-size: 10px; color: #888; }
+.daily-desc { font-weight: 700; font-size: 14px; }
+.daily-amt { font-weight: 900; }
+.del-btn { color: #ccc; border: none; background: none; font-size: 16px; cursor: pointer; }
+
+/* Modal */
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: flex-end; }
+.modal.open { display: flex; }
+.modal-content { background: white; width: 100%; border-radius: 20px 20px 0 0; padding: 20px; }
+.modal-field { margin-bottom: 12px; }
+.modal-field label { display: block; font-size: 11px; margin-bottom: 4px; color: #666; }
+.modal-field input, .modal-field select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; }
+
+.fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; background: var(--navy); color: white; border-radius: 50%; border: none; font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+</style>
 </head>
 <body>
-  <downloads-manager></downloads-manager>
-  <link rel="stylesheet" href="chrome://resources/css/text_defaults_md.css">
-  <script type="module" src="downloads.js"></script>
+
+<div class="app-header">
+  <h2 id="monthTitle">4월 가계부</h2>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('assets')">자산</button>
+  <button class="tab-btn" onclick="showTab('expense')">지출</button>
+  <button class="tab-btn" onclick="showTab('daily')">기록</button>
+  <button class="tab-btn" onclick="showTab('summary')">보고서</button>
+</div>
+
+<div class="page active" id="page-assets">
+  <div class="section">
+    <div class="section-header">🏦 은행별 저축액</div>
+    <div class="section-body" id="bank-list"></div>
+    <div class="add-custom">
+      <input type="text" id="new-bank-name" placeholder="은행 이름 입력">
+      <button class="add-btn" onclick="addItem('bank', 'new-bank-name')">추가</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-expense">
+  <div class="section">
+    <div class="section-header">💳 카드별 사용액</div>
+    <div class="section-body" id="card-list"></div>
+    <div class="add-custom">
+      <input type="text" id="new-card-name" placeholder="카드 이름 입력">
+      <button class="add-btn" onclick="addItem('card', 'new-card-name')">추가</button>
+    </div>
+  </div>
+  
+  <div class="section">
+    <div class="section-header">🍴 지출 카테고리 (식사/물품 등)</div>
+    <div class="section-body" id="cat-list"></div>
+    <div class="add-custom">
+      <input type="text" id="new-cat-name" placeholder="카테고리 이름 입력">
+      <button class="add-btn" onclick="addItem('cat', 'new-cat-name')">추가</button>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-daily">
+  <div id="daily-list"></div>
+  <button class="fab" onclick="openModal()">＋</button>
+</div>
+
+<div class="page" id="page-summary">
+  <div class="summary-card">
+    <div class="sum-row"><span>총 자산 합계</span><span class="sum-val" id="total-asset-val">0원</span></div>
+    <div class="sum-row"><span>이번 달 지출 합계</span><span class="sum-val" style="color:var(--expense)" id="total-exp-val">0원</span></div>
+  </div>
+  <div id="summary-details"></div>
+</div>
+
+<div class="modal" id="modal" onclick="closeModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 style="margin-bottom:15px">상세 지출 기록</h3>
+    <div class="modal-field"><label>날짜</label><input type="date" id="m-date"></div>
+    <div class="modal-field"><label>내용</label><input type="text" id="m-desc"></div>
+    <div class="modal-field"><label>카테고리</label><select id="m-cat-sel"></select></div>
+    <div class="modal-field"><label>결제 수단</label><select id="m-card-sel"></select></div>
+    <div class="modal-field"><label>금액</label><input type="number" id="m-amt"></div>
+    <button class="add-btn" style="width:100%; padding:12px; font-size:16px" onclick="saveEntry()">기록 저장</button>
+  </div>
+</div>
+
+<script>
+let state = JSON.parse(localStorage.getItem('mh_state')) || {
+  banks: { '국민은행': 0, '농협': 0 },
+  cards: { '국민카드': 0, '현대카드': 0 },
+  cats: { '식사': 0, '물품구매': 0, '헌금': 0 },
+  entries: []
+};
+
+function save() { localStorage.setItem('mh_state', JSON.stringify(state)); render(); }
+
+function addItem(type, inputId) {
+  const name = document.getElementById(inputId).value.trim();
+  if(!name) return;
+  if(type === 'bank') state.banks[name] = 0;
+  else if(type === 'card') state.cards[name] = 0;
+  else if(type === 'cat') state.cats[name] = 0;
+  document.getElementById(inputId).value = '';
+  save();
+}
+
+function updateVal(type, key, val) {
+  state[type][key] = Number(val);
+  save();
+}
+
+function showTab(tabId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + tabId).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function render() {
+  const bankBody = document.getElementById('bank-list');
+  bankBody.innerHTML = Object.entries(state.banks).map(([k, v]) => `
+    <div class="item-row"><span class="item-label">${k}</span>
+    <input class="item-input" type="number" value="${v}" onchange="updateVal('banks', '${k}', this.value)"></div>
+  `).join('');
+
+  const cardBody = document.getElementById('card-list');
+  cardBody.innerHTML = Object.entries(state.cards).map(([k, v]) => `
+    <div class="item-row"><span class="item-label">${k}</span>
+    <input class="item-input" type="number" value="${v}" readonly></div>
+  `).join('');
+
+  const catBody = document.getElementById('cat-list');
+  catBody.innerHTML = Object.entries(state.cats).map(([k, v]) => `
+    <div class="item-row"><span class="item-label">${k}</span>
+    <input class="item-input" type="number" value="${v}" readonly></div>
+  `).join('');
+
+  const dailyList = document.getElementById('daily-list');
+  dailyList.innerHTML = state.entries.slice().reverse().map((e, idx) => `
+    <div class="daily-item">
+      <div class="daily-info">
+        <span class="daily-date">${e.date} | ${e.card}</span>
+        <span class="daily-desc">[${e.cat}] ${e.desc}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px">
+        <span class="daily-amt" style="color:var(--expense)">-${e.amt.toLocaleString()}원</span>
+        <button class="del-btn" onclick="delEntry(${state.entries.length - 1 - idx})">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Update Summary
+  let totalAsset = Object.values(state.banks).reduce((a,b)=>a+b, 0);
+  let totalExp = state.entries.reduce((a,b)=>a+b.amt, 0);
+  document.getElementById('total-asset-val').textContent = totalAsset.toLocaleString() + '원';
+  document.getElementById('total-exp-val').textContent = totalExp.toLocaleString() + '원';
+  
+  // Update Select Boxes
+  document.getElementById('m-cat-sel').innerHTML = Object.keys(state.cats).map(k => `<option>${k}</option>`).join('');
+  document.getElementById('m-card-sel').innerHTML = Object.keys(state.cards).map(k => `<option>${k}</option>`).join('');
+}
+
+function openModal() {
+  document.getElementById('m-date').value = new Date().toISOString().substring(0, 10);
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(e) { document.getElementById('modal').classList.remove('open'); }
+
+function saveEntry() {
+  const entry = {
+    date: document.getElementById('m-date').value,
+    desc: document.getElementById('m-desc').value,
+    cat: document.getElementById('m-cat-sel').value,
+    card: document.getElementById('m-card-sel').value,
+    amt: Number(document.getElementById('m-amt').value)
+  };
+  if(!entry.amt) return;
+  state.entries.push(entry);
+  
+  // 자동으로 카드 및 카테고리 합계에 반영
+  state.cards[entry.card] += entry.amt;
+  state.cats[entry.cat] += entry.amt;
+  
+  closeModal();
+  save();
+}
+
+function delEntry(idx) {
+  const e = state.entries[idx];
+  state.cards[e.card] -= e.amt;
+  state.cats[e.cat] -= e.amt;
+  state.entries.splice(idx, 1);
+  save();
+}
+
+window.onload = render;
+</script>
 </body>
 </html>
