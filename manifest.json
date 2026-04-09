@@ -1,0 +1,25 @@
+{
+  "name": "목회자 가계부",
+  "short_name": "가계부",
+  "description": "말씀 위에 세운 목회자 재정관리 앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f2440",
+  "theme_color": "#1a3a5c",
+  "orientation": "portrait",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
