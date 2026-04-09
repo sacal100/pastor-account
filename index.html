@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#1a3a5c">
 <title>목회자 가계부 - 통합관리</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --navy: #1a3a5c; --gold: #c9a84c; --income: #2d6a4f; --expense: #9b2335; --asset: #1d4e89;
@@ -14,43 +14,35 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; }
 body { background: var(--bg); color: #333; padding-bottom: 80px; }
 
-/* Header & Tabs */
 .app-header { background: var(--navy); color: white; padding: 15px; position: sticky; top: 0; z-index: 100; text-align: center; }
 .tab-bar { display: flex; background: #0f2440; position: sticky; top: 50px; z-index: 100; }
 .tab-btn { flex: 1; color: #aaa; padding: 12px; border: none; background: none; font-size: 12px; cursor: pointer; }
 .tab-btn.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
 
-/* Section Styles */
 .page { display: none; padding: 15px; }
 .page.active { display: block; }
 .section { background: var(--white); border-radius: 12px; margin-bottom: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-.section-header { padding: 12px 15px; border-bottom: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; }
+.section-header { padding: 12px 15px; border-bottom: 1px solid var(--border); font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
 .section-body { padding: 10px 15px; }
 
-/* Item Row */
 .item-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
 .item-label { font-size: 13px; flex: 1; }
 .item-input { width: 120px; text-align: right; border: 1px solid var(--border); border-radius: 6px; padding: 6px; font-weight: 700; }
 
-/* Custom Addition UI */
 .add-custom { display: flex; gap: 5px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
 .add-custom input { flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
 .add-btn { background: var(--navy); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
-/* Summary Cards */
 .summary-card { background: var(--white); padding: 15px; border-radius: 12px; margin-bottom: 15px; }
 .sum-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
 .sum-val { font-weight: 700; }
 
-/* Daily List */
 .daily-item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 .daily-info { display: flex; flex-direction: column; }
 .daily-date { font-size: 10px; color: #888; }
 .daily-desc { font-weight: 700; font-size: 14px; }
-.daily-amt { font-weight: 900; }
 .del-btn { color: #ccc; border: none; background: none; font-size: 16px; cursor: pointer; }
 
-/* Modal */
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: flex-end; }
 .modal.open { display: flex; }
 .modal-content { background: white; width: 100%; border-radius: 20px 20px 0 0; padding: 20px; }
@@ -64,23 +56,33 @@ body { background: var(--bg); color: #333; padding-bottom: 80px; }
 <body>
 
 <div class="app-header">
-  <h2 id="monthTitle">4월 가계부</h2>
+  <h2 id="monthTitle">목회자 가계부</h2>
 </div>
 
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="showTab('assets')">자산</button>
-  <button class="tab-btn" onclick="showTab('expense')">지출</button>
+  <button class="tab-btn active" onclick="showTab('income')">수입/자산</button>
+  <button class="tab-btn" onclick="showTab('expense')">지출항목</button>
   <button class="tab-btn" onclick="showTab('daily')">기록</button>
   <button class="tab-btn" onclick="showTab('summary')">보고서</button>
 </div>
 
-<div class="page active" id="page-assets">
+<div class="page active" id="page-income">
   <div class="section">
-    <div class="section-header">🏦 은행별 저축액</div>
+    <div class="section-header">💰 이번 달 수입 (사례비 등) <span id="sum-inc" style="color:var(--income)">0원</span></div>
+    <div class="section-body" id="income-list">
+      <div class="item-row"><span class="item-label">사례비</span><input class="item-input" type="number" data-key="inc_salary" onchange="updateStaticVal(this)"></div>
+      <div class="item-row"><span class="item-label">목회비</span><input class="item-input" type="number" data-key="inc_ministry" onchange="updateStaticVal(this)"></div>
+      <div class="item-row"><span class="item-label">심방비</span><input class="item-input" type="number" data-key="inc_visit" onchange="updateStaticVal(this)"></div>
+      <div class="item-row"><span class="item-label">기타 수입</span><input class="item-input" type="number" data-key="inc_etc" onchange="updateStaticVal(this)"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">🏦 은행별 자산 (저축액) <span id="sum-asset" style="color:var(--asset)">0원</span></div>
     <div class="section-body" id="bank-list"></div>
     <div class="add-custom">
       <input type="text" id="new-bank-name" placeholder="은행 이름 입력">
-      <button class="add-btn" onclick="addItem('bank', 'new-bank-name')">추가</button>
+      <button class="add-btn" onclick="addItem('bank', 'new-bank-name')">은행 추가</button>
     </div>
   </div>
 </div>
@@ -91,16 +93,16 @@ body { background: var(--bg); color: #333; padding-bottom: 80px; }
     <div class="section-body" id="card-list"></div>
     <div class="add-custom">
       <input type="text" id="new-card-name" placeholder="카드 이름 입력">
-      <button class="add-btn" onclick="addItem('card', 'new-card-name')">추가</button>
+      <button class="add-btn" onclick="addItem('card', 'new-card-name')">카드 추가</button>
     </div>
   </div>
   
   <div class="section">
-    <div class="section-header">🍴 지출 카테고리 (식사/물품 등)</div>
+    <div class="section-header">🍴 지출 카테고리 (무한 추가 가능)</div>
     <div class="section-body" id="cat-list"></div>
     <div class="add-custom">
-      <input type="text" id="new-cat-name" placeholder="카테고리 이름 입력">
-      <button class="add-btn" onclick="addItem('cat', 'new-cat-name')">추가</button>
+      <input type="text" id="new-cat-name" placeholder="카테고리(예: 식사, 물품)">
+      <button class="add-btn" onclick="addItem('cat', 'new-cat-name')">항목 추가</button>
     </div>
   </div>
 </div>
@@ -113,7 +115,11 @@ body { background: var(--bg); color: #333; padding-bottom: 80px; }
 <div class="page" id="page-summary">
   <div class="summary-card">
     <div class="sum-row"><span>총 자산 합계</span><span class="sum-val" id="total-asset-val">0원</span></div>
-    <div class="sum-row"><span>이번 달 지출 합계</span><span class="sum-val" style="color:var(--expense)" id="total-exp-val">0원</span></div>
+    <div class="sum-row"><span>이번 달 총 수입</span><span class="sum-val" style="color:var(--income)" id="total-inc-val">0원</span></div>
+    <div class="sum-row"><span>이번 달 총 지출</span><span class="sum-val" style="color:var(--expense)" id="total-exp-val">0원</span></div>
+    <div class="sum-row" style="border-top:1px solid #eee; padding-top:10px; margin-top:10px">
+      <span>이번 달 잔액</span><span class="sum-val" id="total-bal-val">0원</span>
+    </div>
   </div>
   <div id="summary-details"></div>
 </div>
@@ -124,21 +130,27 @@ body { background: var(--bg); color: #333; padding-bottom: 80px; }
     <div class="modal-field"><label>날짜</label><input type="date" id="m-date"></div>
     <div class="modal-field"><label>내용</label><input type="text" id="m-desc"></div>
     <div class="modal-field"><label>카테고리</label><select id="m-cat-sel"></select></div>
-    <div class="modal-field"><label>결제 수단</label><select id="m-card-sel"></select></div>
+    <div class="modal-field"><label>결제 수단 (카드)</label><select id="m-card-sel"></select></div>
     <div class="modal-field"><label>금액</label><input type="number" id="m-amt"></div>
     <button class="add-btn" style="width:100%; padding:12px; font-size:16px" onclick="saveEntry()">기록 저장</button>
   </div>
 </div>
 
 <script>
-let state = JSON.parse(localStorage.getItem('mh_state')) || {
+let state = JSON.parse(localStorage.getItem('mh_v3_state')) || {
+  static: { inc_salary:0, inc_ministry:0, inc_visit:0, inc_etc:0 },
   banks: { '국민은행': 0, '농협': 0 },
-  cards: { '국민카드': 0, '현대카드': 0 },
-  cats: { '식사': 0, '물품구매': 0, '헌금': 0 },
+  cards: { '국민카드': 0 },
+  cats: { '식사': 0, '물품구매': 0, '헌금': 0, '도서구입': 0, '목장': 0 },
   entries: []
 };
 
-function save() { localStorage.setItem('mh_state', JSON.stringify(state)); render(); }
+function save() { localStorage.setItem('mh_v3_state', JSON.stringify(state)); render(); }
+
+function updateStaticVal(input) {
+  state.static[input.dataset.key] = Number(input.value);
+  save();
+}
 
 function addItem(type, inputId) {
   const name = document.getElementById(inputId).value.trim();
@@ -163,12 +175,19 @@ function showTab(tabId) {
 }
 
 function render() {
+  // 1. 수입 렌더링
+  document.querySelectorAll('#income-list .item-input').forEach(input => {
+    input.value = state.static[input.dataset.key] || '';
+  });
+
+  // 2. 자산(은행) 렌더링
   const bankBody = document.getElementById('bank-list');
   bankBody.innerHTML = Object.entries(state.banks).map(([k, v]) => `
     <div class="item-row"><span class="item-label">${k}</span>
     <input class="item-input" type="number" value="${v}" onchange="updateVal('banks', '${k}', this.value)"></div>
   `).join('');
 
+  // 3. 카드/카테고리 렌더링 (지출 내역에 따라 자동 계산됨)
   const cardBody = document.getElementById('card-list');
   cardBody.innerHTML = Object.entries(state.cards).map(([k, v]) => `
     <div class="item-row"><span class="item-label">${k}</span>
@@ -181,6 +200,7 @@ function render() {
     <input class="item-input" type="number" value="${v}" readonly></div>
   `).join('');
 
+  // 4. 기록 렌더링
   const dailyList = document.getElementById('daily-list');
   dailyList.innerHTML = state.entries.slice().reverse().map((e, idx) => `
     <div class="daily-item">
@@ -189,19 +209,25 @@ function render() {
         <span class="daily-desc">[${e.cat}] ${e.desc}</span>
       </div>
       <div style="display:flex; align-items:center; gap:10px">
-        <span class="daily-amt" style="color:var(--expense)">-${e.amt.toLocaleString()}원</span>
+        <span class="daily-amt" style="color:var(--expense)">-${(e.amt||0).toLocaleString()}원</span>
         <button class="del-btn" onclick="delEntry(${state.entries.length - 1 - idx})">✕</button>
       </div>
     </div>
   `).join('');
 
-  // Update Summary
+  // 5. 합계 계산
+  let totalInc = Object.values(state.static).reduce((a,b)=>a+b, 0);
   let totalAsset = Object.values(state.banks).reduce((a,b)=>a+b, 0);
-  let totalExp = state.entries.reduce((a,b)=>a+b.amt, 0);
+  let totalExp = state.entries.reduce((a,b)=>a+(b.amt||0), 0);
+  
+  document.getElementById('sum-inc').textContent = totalInc.toLocaleString() + '원';
+  document.getElementById('sum-asset').textContent = totalAsset.toLocaleString() + '원';
+  document.getElementById('total-inc-val').textContent = totalInc.toLocaleString() + '원';
   document.getElementById('total-asset-val').textContent = totalAsset.toLocaleString() + '원';
   document.getElementById('total-exp-val').textContent = totalExp.toLocaleString() + '원';
+  document.getElementById('total-bal-val').textContent = (totalInc - totalExp).toLocaleString() + '원';
   
-  // Update Select Boxes
+  // 모달 셀렉트 업데이트
   document.getElementById('m-cat-sel').innerHTML = Object.keys(state.cats).map(k => `<option>${k}</option>`).join('');
   document.getElementById('m-card-sel').innerHTML = Object.keys(state.cards).map(k => `<option>${k}</option>`).join('');
 }
@@ -223,9 +249,9 @@ function saveEntry() {
   if(!entry.amt) return;
   state.entries.push(entry);
   
-  // 자동으로 카드 및 카테고리 합계에 반영
-  state.cards[entry.card] += entry.amt;
-  state.cats[entry.cat] += entry.amt;
+  // 카드 및 카테고리 합계에 실시간 반영
+  state.cards[entry.card] = (state.cards[entry.card] || 0) + entry.amt;
+  state.cats[entry.cat] = (state.cats[entry.cat] || 0) + entry.amt;
   
   closeModal();
   save();
